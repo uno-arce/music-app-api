@@ -1,7 +1,7 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
-const dotenv = required('dotenv')
+const dotenv = require('dotenv')
 const userRoutes = require('./routes/userRoutes.js')
 
 // Database Connection
@@ -29,5 +29,5 @@ app.use('/users', userRoutes)
 
 const PORT = process.env.PORT || 4000
 if(require.main === module) {
-	app.listen(PORT, () => console.log(`API is now online on port ${PORT]}`))
+	app.listen(PORT, () => console.log(`API is now online on port ${PORT}`))
 }
