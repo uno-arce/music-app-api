@@ -31,3 +31,5 @@ const PORT = process.env.PORT || 4000
 if(require.main === module) {
 	app.listen(PORT, () => console.log(`API is now online on port ${PORT}`))
 }
+
+module.exports = {app, mongoose}
