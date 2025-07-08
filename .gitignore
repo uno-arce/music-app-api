@@ -3,3 +3,6 @@ index.txt
 .env
 auth.txt
 test.txt
+models.txt
+routes.txt
+controllers.txt
