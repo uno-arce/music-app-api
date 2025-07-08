@@ -8,7 +8,7 @@ try {
 	const { app, mongoose } = require('../index.js')
 	const MONGODB_URI = process.env.MONGODB_URI
 
-	describe('Test-User-Controller', function() {
+	describe('Test UserController', function() {
 		this.timeout(60000)
 
 		before(async function() {
@@ -19,9 +19,19 @@ try {
 			await mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atlas in Mocha Test'))
 		})
 
-
 		after(async function() {
 			await mongoose.connection.close()
+		})
+
+		describe('User Registration (POST /users)', function() {
+			it('should create a new user succesfully', (done) => {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					
+				})
+			})
 		})
 	}
 } catch(err) {
