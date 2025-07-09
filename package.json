@@ -13,8 +13,8 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.2",
-    "chai": "^5.2.0",
-    "chai-http": "^5.1.2",
+    "chai": "^4.3.10",
+    "chai-http": "^4.3.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
