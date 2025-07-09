@@ -7,30 +7,28 @@ const userSchema = new mongoose.Schema({
 		required: true,
 		trim: true,
 		lowercase: true,
-		minlength: 6,
-		maxlength: 24
+		minLength: 6,
+		maxLength: 24
 	},
 	email: {
 		type: String,
 		required: true,
 		trim: true,
 		lowercase: true,
-		minlength: 6,
-		maxlength: 24
+		minLength: 6,
+		maxLength: 24
 	},
 	password: {
 		type: String,
 		required: true,
 		trim: true,
-		lowercase: true,
-		minlength: 6,
-		maxlength: 24
+		minLength: 6
 	},
 	songs: [
 		{
 			name: {
 				type: String,
-				required: false,
+				required: false
 			},
 			genre: {
 				type: String,
@@ -39,8 +37,8 @@ const userSchema = new mongoose.Schema({
 			rating: {
 				type: Number,
 				required: false,
-				minlength: 1,
-				maxlength: 5
+				min: 1,
+				max: 5
 			},
 			ofTheDay: [
 				{
@@ -51,7 +49,7 @@ const userSchema = new mongoose.Schema({
 					addedOn: {
 						type: Date,
 						default: new Date()
-					},
+					}
 				}
 			],
 			addedOn: {
@@ -62,6 +60,6 @@ const userSchema = new mongoose.Schema({
 	]	
 })
 
-const User = mongoose.model('Users', userSchema)
+const User = mongoose.model('User', userSchema)
 
 module.exports = User
