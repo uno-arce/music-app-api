@@ -9,7 +9,7 @@ dotenv.config()
 const MONGODB_URI = process.env.MONGODB_URI
 
 mongoose.connect(MONGODB_URI)
-mongoose.connection.once('Open', () => console.log('Now connected to MongoDB Atlas'))
+mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atlas'))
 
 
 // Server Setup and Cors Configuration
@@ -21,6 +21,8 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
+app.use(express.json())
+app.use(express.urlencoded({extended:true}))
 
 
 // Middleware
