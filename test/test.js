@@ -31,7 +31,7 @@ try {
 				.type('json')
 				.send({
 					 username: 'user.one',
-					 email: 'admin@gmail.com',
+					 email: 'userone@gmail.com',
 					 password: 'admin@123'
 				})
 				.end(async (err, res) => {
@@ -143,6 +143,25 @@ try {
 					} catch(err) {
 						done(err)
 					}	
+				})
+			})
+
+		})
+
+
+		describe('User Login (POST /users)', function() {
+			it('should return 200 and message if user login successfully', function() {
+				chai.request(app)
+				.post('/users/login')
+				.type('json')
+				.send({
+					username: 'uno.arce',
+					password: 'admin123'
+				})
+				.end((err, res) => {
+					expect(res).to.have.status(200)
+					expect(res.body).to.include('User login successfully')
+					done(err)
 				})
 			})
 
