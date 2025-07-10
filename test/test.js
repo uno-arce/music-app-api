@@ -30,9 +30,9 @@ try {
 				.post('/users/register')
 				.type('json')
 				.send({
-					 username: 'uno.arce30',
-					 email: 'uno@gmail.com',
-					 password: 'admin123'
+					 username: 'user.one',
+					 email: 'admin@gmail.com',
+					 password: 'admin@123'
 				})
 				.end(async (err, res) => {
 					try {
@@ -45,7 +45,28 @@ try {
 					}
 				})
 			})
+
 			it('should return 400 and error if username is composed of only numbers', function() {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: '@/`~$%^&',
+					email: 'admin@gmail.com',
+					password: 'admin123'
+				})
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(400)
+						expect(res.body.error).to.include('Invalid username')
+						done(err)
+					} catch(err) {
+						done(err)
+					}
+				})
+			})
+
+			it('should return 400 and error if username is composed of only symbols', function() {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -54,11 +75,77 @@ try {
 					email: 'admin@gmail.com',
 					password: 'admin123'
 				})
-				.end((err, res) => {
-					expect(res).to.have.status(400)
-					expect(res.body.error).to.include('Invalid username')
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(400)
+						expect(res.body.error).to.include('Invalid username')
+						done(err)
+					} catch(err) {
+						done(err)
+					}	
 				})
 			})
+
+			it('should return 400 and error if email is does not have @ symbol and .com', function() {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: 'user.one',
+					email: 'admingmail.com',
+					password: 'admin123'
+				})
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(400)
+						expect(res.body.error).to.include('Invalid email')
+						done(err)
+					} catch(err) {
+						done(err)
+					}	
+				})
+			})
+
+			it('should return 409 and error if email is already taken', function() {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: 'user.one',
+					email: 'uno@gmail.com',
+					password: 'admin123'
+				})
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(409)
+						expect(res.body.error).to.include('Email was already taken')
+						done(err)
+					} catch(err) {
+						done(err)
+					}	
+				})
+			})
+
+			it('should return 400 and error if password does not contain one symbol and number', function() {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: 'user.one',
+					email: 'admin@gmail.com',
+					password: 'admin@'
+				})
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(400)
+						expect(res.body.error).to.include('Password must contain atleas one symbol and number')
+						done(err)
+					} catch(err) {
+						done(err)
+					}	
+				})
+			})
+
 		})
 	})
 } catch(err) {
