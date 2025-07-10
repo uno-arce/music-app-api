@@ -25,20 +25,38 @@ try {
 		})
 
 		describe('User Registration (POST /users)', function() {
-			it('should create a new user succesfully', (done) => {
+			it('should return 200 and message if user registration successful', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
 				.send({
-					 username: '333333',
-					 email: 'admin@gmail.com',
+					 username: 'uno.arce30',
+					 email: 'uno@gmail.com',
 					 password: 'admin123'
 				})
+				.end(async (err, res) => {
+					try {
+						expect(res).to.have.status(201)
+						expect(res.body.message).to.include('User registered successfully')
+						await mongoose.model('User').deleteOne({ _id: res.body._id })
+						done(err)
+					} catch(err) {
+						done(err)
+					}
+				})
+			})
+			it('should return 400 and error if username is composed of only numbers', function() {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: '333333',
+					email: 'admin@gmail.com',
+					password: 'admin123'
+				})
 				.end((err, res) => {
-					console.log(res.body.username)
-					expect(res).to.have.status(201)
-					expect(res.body.message).to.include('User registered successfully')
-					done(err)
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Invalid username')
 				})
 			})
 		})
