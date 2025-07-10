@@ -23,7 +23,8 @@ module.exports.registerUser = (req, res) => {
 		let newUser = new User({
 			username: req.body.username,
 			email: req.body.email,
-			password: bcrypt.hashSync(req.body.password, 10)
+			password: bcrypt.hashSync(req.body.password, 10),
+			_id: req.body._id
 		})
 		newUser.save()
 		.then((user) => res.status(201).send({ message: 'User registered successfully', username: reqUsername}))
