@@ -4,6 +4,7 @@ const { verify, verifyAdmin } = ('../auth')
 const userController = require('../controllers/userController.js')
 
 router.post('/register', userController.registerUser)
+router.post('/login', userController.loginUser)
 
 
 module.exports = router
