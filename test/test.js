@@ -25,8 +25,8 @@ try {
 		})
 
 		describe('User Registration (POST /users)', function() {
-			it('should return 200 and message if user registration successful', (done) => {
-				chai.request(app)
+			it('should return 200 and message if user registration successful', async () => {
+				const res = await chai.request(app)
 				.post('/users/register')
 				.type('json')
 				.send({
@@ -34,19 +34,13 @@ try {
 					 email: 'userone@gmail.com',
 					 password: 'admin@123'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(201)
-						expect(res.body.message).to.include('User registered successfully')
-						await mongoose.model('User').deleteOne({ _id: res.body._id })
-						done(err)
-					} catch(err) {
-						done(err)
-					}
-				})
+				
+				expect(res).to.have.status(201)
+				expect(res.body.message).to.include('User registered successfully')
+				await mongoose.model('User').deleteOne({ _id: res.body._id })
 			})
 
-			it('should return 400 and error if username is composed of only numbers', function() {
+			it('should return 400 and error if username is composed of only numbers', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -55,18 +49,14 @@ try {
 					email: 'admin@gmail.com',
 					password: 'admin123'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(400)
-						expect(res.body.error).to.include('Invalid username')
-						done(err)
-					} catch(err) {
-						done(err)
-					}
+				.end((err, res) => {
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Invalid username')
+					done(err)
 				})
 			})
 
-			it('should return 400 and error if username is composed of only symbols', function() {
+			it('should return 400 and error if username is composed of only symbols', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -75,18 +65,14 @@ try {
 					email: 'admin@gmail.com',
 					password: 'admin123'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(400)
-						expect(res.body.error).to.include('Invalid username')
-						done(err)
-					} catch(err) {
-						done(err)
-					}	
+				.end((err, res) => {
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Invalid username')
+					done(err)	
 				})
 			})
 
-			it('should return 400 and error if email is does not have @ symbol and .com', function() {
+			it('should return 400 and error if email is does not have @ symbol and .com', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -95,18 +81,14 @@ try {
 					email: 'admingmail.com',
 					password: 'admin123'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(400)
-						expect(res.body.error).to.include('Invalid email')
-						done(err)
-					} catch(err) {
-						done(err)
-					}	
+				.end((err, res) => {
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Invalid email')
+					done(err)
 				})
 			})
 
-			it('should return 409 and error if email is already taken', function() {
+			it('should return 409 and error if email is already taken', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -115,18 +97,14 @@ try {
 					email: 'uno@gmail.com',
 					password: 'admin123'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(409)
-						expect(res.body.error).to.include('Email was already taken')
-						done(err)
-					} catch(err) {
-						done(err)
-					}	
+				.end((err, res) => {
+					expect(res).to.have.status(409)
+					expect(res.body.error).to.include('Email was already taken')
+					done(err)	
 				})
 			})
 
-			it('should return 400 and error if password does not contain one symbol and number', function() {
+			it('should return 400 and error if password does not contain one symbol and number', (done) => {
 				chai.request(app)
 				.post('/users/register')
 				.type('json')
@@ -135,14 +113,10 @@ try {
 					email: 'admin@gmail.com',
 					password: 'admin@'
 				})
-				.end(async (err, res) => {
-					try {
-						expect(res).to.have.status(400)
-						expect(res.body.error).to.include('Password must contain atleas one symbol and number')
-						done(err)
-					} catch(err) {
-						done(err)
-					}	
+				.end((err, res) => {
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Password must contain atleast one symbol and number')
+					done(err)
 				})
 			})
 
@@ -150,19 +124,17 @@ try {
 
 
 		describe('User Login (POST /users)', function() {
-			it('should return 200 and message if user login successfully', function() {
-				chai.request(app)
+			it('should return 200 and message if user login successfully', async () => {
+				const res = await chai.request(app)
 				.post('/users/login')
 				.type('json')
 				.send({
-					username: 'uno.arce',
-					password: 'admin123'
+					email: 'uno@gmail.com',
+					password: 'admin@123'
 				})
-				.end((err, res) => {
-					expect(res).to.have.status(200)
-					expect(res.body).to.include('User login successfully')
-					done(err)
-				})
+				
+				expect(res).to.have.status(200)
+				expect(res.body.message).to.include('User login successfully')
 			})
 
 		})
