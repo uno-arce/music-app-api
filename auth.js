@@ -14,7 +14,7 @@ module.exports.createAccessToken = (user) => {
 		isAdmin: user.isAdmin
 	}
 
-	return jwt.token(data, secret, {})
+	return jwt.sign(data, secret, {})
 } 
 
 // Token Verification
