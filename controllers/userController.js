@@ -35,7 +35,7 @@ module.exports.registerUser = async (req, res) => {
 	}
 
 	// password should be atleast 6 characters
-	else if(req.body.password.length < 6) {
+	if(req.body.password.length < 6) {
 		return res.status(400).send({ error: "Password must be atleast 6 characters"})
 	}
 

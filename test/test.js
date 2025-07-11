@@ -120,6 +120,22 @@ try {
 				})
 			})
 
+			it('should return 400 and error if password is not atleast 6 characters', (done) => {
+				chai.request(app)
+				.post('/users/register')
+				.type('json')
+				.send({
+					username: 'user.one',
+					email: 'admin@gmail.com',
+					password: '@dm1n'
+				})
+				.end((err, res) => {
+					expect(res).to.have.status(400)
+					expect(res.body.error).to.include('Password must be atleast 6 characters')
+					done(err)
+				})
+			})
+
 		})
 
 
@@ -137,6 +153,58 @@ try {
 				expect(res.body.message).to.include('User login successfully')
 			})
 
+			it('should return 400 and error if user is not registered', async () => {
+				const res = await chai.request(app)
+				.post('/users/login')
+				.type('json')
+				.send({
+					email: 'user@gmail.com',
+					password: 'admin@123'
+				})
+				
+				expect(res).to.have.status(400)
+				expect(res.body.error).to.include('Incorrect email or password')
+			})
+
+			it('should return 400 and error if user email has incorrect format', async () => {
+				const res = await chai.request(app)
+				.post('/users/login')
+				.type('json')
+				.send({
+					email: 'usergmail.com',
+					password: 'admin@123'
+				})
+				
+				expect(res).to.have.status(400)
+				expect(res.body.error).to.include('Invalid email format: Please provide a valid email address (e.g., user@example.com)')
+			})
+
+			it('should return 400 and error if user password is incorrect', async () => {
+				const res = await chai.request(app)
+				.post('/users/login')
+				.type('json')
+				.send({
+					email: 'uno@gmail.com',
+					password: 'admin@1'
+				})
+
+				expect(res).to.have.status(400)
+				expect(res.body.error).to.include('Incorrect email or password')
+			})
+		})
+
+		describe('User Verification (POST /users)', function() {
+			it('should return access if user has authentication', async() => {
+				const res = await(chai.request(app))
+				.post('/users/login')
+				.type('json')
+				.send({
+					email: 'uno@gmail.com',
+					password: 'admin@123'
+				})
+
+				expect(res.body).to.include.all.keys(['access'])
+			})
 		})
 	})
 } catch(err) {
