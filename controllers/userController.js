@@ -31,7 +31,7 @@ module.exports.registerUser = async (req, res) => {
 	const passwordHasNumber = /\d/;
 	const passwordHasSymbol = /[^\w\s]/;
 	if(!passwordHasNumber.test(req.body.password) || !passwordHasSymbol.test(req.body.password)) {
-		return res.status(400).send('Password must contain atleast one symbol and number')
+		return res.status(400).send({ error: 'Password must contain atleast one symbol and number'})
 	}
 
 	// password should be atleast 6 characters
@@ -48,7 +48,7 @@ module.exports.registerUser = async (req, res) => {
 		newUser.save()
 		.then((user) => res.status(201).send({
 			message: 'User registered successfully', 
-			username: reqUsername, 
+			username: user.username, 
 			email: user.email,
 			_id: user._id
 		}))
@@ -58,23 +58,29 @@ module.exports.registerUser = async (req, res) => {
 
 module.exports.loginUser = async (req, res) => {
 	try {
-		const user = await User.findOne( {email: req.body.email })
-
 		// email should be valid and must contain @ and .com
 		const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
 		if(!emailRegex.test(req.body.email)) {
 			return res.status(400).send({ error: 'Invalid email format: Please provide a valid email address (e.g., user@example.com)'})
 		}
 
+		// user should be registered to the app
+		const user = await User.findOne( {email: req.body.email })
+		if(!user) {
+			return res.status(400).send({ error: 'Incorrect email or password'})
+		}
+
+
 		// password should be correct
-		else if(!bcrypt.compareSync(user.password), req.body.password) {
+		if(!bcrypt.compareSync(req.body.password, user.password)) {
 			return res.status(400).send({ error: 'Incorrect email or password'})
 		}
 
 		else {
-			return res.status(200).send({ access: createAccessToken(user), message: "User login successfully"})
+			return res.status(200).send({ access: auth.createAccessToken(user), message: "User login successfully"})
 		}
 	} catch(err) {
+		console.log(err)
 		res.status(500).send({ error: 'Error on logging in' })
 	}
 }
