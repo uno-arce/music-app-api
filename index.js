@@ -2,6 +2,7 @@ const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const dotenv = require('dotenv')
+const cookieParser = require('cookie-parser')
 const userRoutes = require('./routes/userRoutes.js')
 
 // Database Connection
@@ -20,13 +21,16 @@ const corsOptions = {
 	optionSuccessStatus: 200
 }
 
+app.use(express.static(__dirname + '/public'))
 app.use(cors(corsOptions))
+app.use(cookieParser())
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 
 
 // Middleware
 app.use('/users', userRoutes)
+app.use('/spotify', userRoutes)
 
 
 const PORT = process.env.PORT || 4000
