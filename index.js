@@ -4,6 +4,7 @@ const cors = require('cors')
 const dotenv = require('dotenv')
 const cookieParser = require('cookie-parser')
 const userRoutes = require('./routes/userRoutes.js')
+const spotifyRoutes = require('./routes/spotifyRoutes.js')
 
 // Database Connection
 dotenv.config()
@@ -18,7 +19,8 @@ const app = express()
 
 const corsOptions = {
 	origin: ['http://localhost:3000'],
-	optionSuccessStatus: 200
+	credentials: true,
+	optionsSuccessStatus: 200
 }
 
 app.use(express.static(__dirname + '/public'))
@@ -30,7 +32,7 @@ app.use(express.urlencoded({extended:true}))
 
 // Middleware
 app.use('/users', userRoutes)
-app.use('/spotify', userRoutes)
+app.use('/auth/spotify', spotifyRoutes)
 
 
 const PORT = process.env.PORT || 4000
