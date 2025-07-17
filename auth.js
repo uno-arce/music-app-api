@@ -19,7 +19,7 @@ module.exports.createAccessToken = (user) => {
 
 // Token Verification
 module.exports.verify = (req, res, next) => {
-	const token = req.headers.authorization
+	let token = req.headers.authorization
 	if(typeof token === 'undefined') {
 		return res.status(400).send({ auth: 'Failed. No Token'} )
 	} else {

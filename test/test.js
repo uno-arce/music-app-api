@@ -195,7 +195,7 @@ try {
 
 		describe('User Verification (POST /users)', function() {
 			it('should return access if user has authentication', async() => {
-				const res = await(chai.request(app))
+				const res = await chai.request(app)
 				.post('/users/login')
 				.type('json')
 				.send({
@@ -204,6 +204,69 @@ try {
 				})
 
 				expect(res.body).to.include.all.keys(['access'])
+			})
+		})
+
+		describe('User Authorization Spotify (GET /spotify/auth', function() {
+			it('should authorize the app successfully', async () => {
+				const res = await chai.request(app)
+				.get('/auth/spotify/')
+				.redirects(0)
+				.set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsImlhdCI6MTc1Mjc0NTY4NH0.8-sGI0cb_yCkZM6ScvBOziS9ve1Zxy5EsrDTbB7H7DY')
+
+				expect(res).to.have.status(302)
+				expect(res).to.have.header('location')
+				expect(res.header.location).to.include('https://accounts.spotify.com/authorize')
+				expect(res.header.location).to.include(`client_id=${process.env.CLIENT_ID}`)
+				expect(res.header.location).to.include(`redirect_uri=${encodeURIComponent(process.env.REDIRECT_URI)}`)
+				expect(res.header.location).to.include('response_type=code')
+				expect(res.header.location).to.include('scope=user-read-private%20user-read-email')
+
+				// Check for the state cookie
+                expect(res).to.have.cookie('spotify_auth_state');
+                const stateCookie = res.header['set-cookie'].find(cookie => cookie.startsWith('spotify_auth_state='));
+                expect(stateCookie).to.exist;
+
+                // Extract the state from the cookie and from the redirect URL
+                const stateFromCookie = stateCookie.split(';')[0].split('=')[1];
+                expect(res.header.location).to.include(`state=${stateFromCookie}`);
+			})
+
+			it('should provide access to user playlist', async () => {
+				const res = await chai.request(app)
+				.get('/auth/spotify/')
+				.redirects(0)
+				.set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsImlhdCI6MTc1Mjc0NTY4NH0.8-sGI0cb_yCkZM6ScvBOziS9ve1Zxy5EsrDTbB7H7DY')
+
+				expect(res.header.location).to.include(encodeURIComponent('playlist-read-private'))
+				expect(res.header.location).to.include(encodeURIComponent('playlist-read-collaborative'))
+			})
+
+			it('should provide access to user recently played songs', async () => {
+				const res = await chai.request(app)
+				.get('/auth/spotify/')
+				.redirects(0)
+				.set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsImlhdCI6MTc1Mjc0NTY4NH0.8-sGI0cb_yCkZM6ScvBOziS9ve1Zxy5EsrDTbB7H7DY')
+
+				expect(res.header.location).to.include(encodeURIComponent('user-read-recently-played'))
+			})
+
+			it('should provide access to user top songs and artists', async () => {
+				const res = await chai.request(app)
+				.get('/auth/spotify/')
+				.redirects(0)
+				.set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsImlhdCI6MTc1Mjc0NTY4NH0.8-sGI0cb_yCkZM6ScvBOziS9ve1Zxy5EsrDTbB7H7DY')
+
+				expect(res.header.location).to.include(encodeURIComponent('user-top-read'))
+			})
+
+			it('should provide access to user library', async () => {
+				const res = await chai.request(app)
+				.get('/auth/spotify/')
+				.redirects(0)
+				.set('Authorization', 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsImlhdCI6MTc1Mjc0NTY4NH0.8-sGI0cb_yCkZM6ScvBOziS9ve1Zxy5EsrDTbB7H7DY')
+
+				expect(res.header.location).to.include(encodeURIComponent('user-library-read'))
 			})
 		})
 	})
