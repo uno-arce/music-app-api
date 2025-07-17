@@ -12,7 +12,7 @@ const redirect_uri = process.env.REDIRECT_URI
 
 // Spotify API Endpoints
 const spotify_authorize_url = 'https://accounts.spotify.com/authorize'
-const spotify_token_url = 'htpps://accounts.spotify.com/api/token'
+const spotify_token_url = 'https://accounts.spotify.com/api/token'
 const spotify_me_url = 'https://api.spotify.com/v1/me'
 
 
@@ -30,14 +30,14 @@ module.exports.requestAuthorization = (req, res) => {
 	const state = generateRandomString(16)
 	res.cookie(stateKey, state)
 
-	const scope = 'user-read-private user-read-email'
+	const scope = 'user-read-private user-read-email user-read-recently-played user-top-read user-library-read playlist-read-private playlist-read-collaborative'
 	res.redirect(spotify_authorize_url +
 		querystring.stringify({
 			response_type: 'code',
 			client_id: client_id,
 			scope: scope,
 			redirect_uri: redirect_uri,
-			state: state
+			state: state,
 		})
 	)
 }
@@ -107,7 +107,7 @@ module.exports.requestAccessToken = (req, res) => {
 						res.redirect('/#' +
 							querystring.stringify({
 								access_token: access_token,
-								refresh_token: refresh_token
+								refresh_token: refresh_token,
 								message: 'Spotify linked successfully'
 							})
 						)
@@ -156,7 +156,7 @@ module.exports.refreshToken = async (req, res) => {
 
 		request.post(authOptions, function(error, response, body) {
 			if (!error && response.statusCode === 200) {
-				const access_token = body.access_token,
+				const access_token = body.access_token
 				const new_refresh_token = body.refresh_token || refresh_token_from_client
 				const expires_in = body.expires_in
 
