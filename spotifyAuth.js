@@ -55,7 +55,14 @@ module.exports.requestAccessToken = (req, res) => {
 			})
 		)
 	} else {
+		const userId = req.user._id
+
+		if(!userId) {
+			return res.redirect('/#' + querystring.stringify({ error: 'Authentication required'}))
+		}
+
 		res.clearCookie(stateKey)
+
 		const authOptions = {
 			url: spotify_token_url,
 			form: {
@@ -68,11 +75,6 @@ module.exports.requestAccessToken = (req, res) => {
 				'Authorization': 'Basic '  + (Buffer.from(client_id + ':' + client_secret).toString('base64'))
 			},
 			json: true
-		}
-		const userId = req.user._id
-
-		if(!userId) {
-			return res.redirect('/#' + querystring.stringify({ error: 'Authentication required'}))
 		}
 
 		request.post(authOptions, function(error, response, body) {
@@ -87,11 +89,11 @@ module.exports.requestAccessToken = (req, res) => {
 
 				request.get(options, async function(error, response, body)  {
 					try {
-						const user = await User.findOneAndUpdate({userId},
+						const user = await User.findOneAndUpdate({ _id: userId},
 							{
-								accessToken: access_token,
-								refresh_token: refresh_token,
-								accessTokenExpiration: new Date(Date.now() + expires_in * 1000)
+								spotifyAccessToken: access_token,
+								spotifyRefreshToken: refresh_token,
+								spotifyAccessTokenExpiration: new Date(Date.now() + expires_in * 1000)
 							},
 							{
 								upsert: true,
