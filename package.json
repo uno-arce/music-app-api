@@ -25,5 +25,8 @@
     "mongoose": "^8.16.1",
     "querystring": "^0.2.1",
     "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "nock": "^14.0.5"
   }
 }
