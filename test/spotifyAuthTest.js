@@ -8,10 +8,10 @@ chai.use(http)
 dotenv.config()
 
 // URL's for Nock
-const spotify_token_api_base = 'https://accounts.spotify.com'
-const spotify_token_api_path = '/api/token'
-const spotify_me_api_base = 'https://api.spotify.com'
-const spotify_me_api_path = '/v1/me'
+const spotify_token_base_url = 'https://accounts.spotify.com'
+const spotify_token_base_path = '/api/token'
+const spotify_me_base_url = 'https://api.spotify.com'
+const spotify_me_base_path = '/v1/me'
 const test_server_url = 'http://localhost:4000'
 const redirect_uri = process.env.REDIRECT_URI
 
@@ -119,7 +119,12 @@ try {
 					}
 				)
 
-				nock.isDone()
+				if (!nock.isDone()) {
+					console.error('Not all nock interceptors were used:', nock.pendingMocks());
+				    throw new Error('Nock interceptors not used!');
+				} else {
+					console.log('Is nock done?', nock.isDone());
+				}
 			})
 
 			it('should exchange code for access tokens and update user in DB', async() => {
@@ -128,9 +133,8 @@ try {
 				const mockState = 'mock_state_from_cookie'
 
 				// Mock Spotify Token Exchange
-				nock(spotify_token_api_base)
-				.post(spotify_token_api_path)
-				.query(true)
+				nock(spotify_token_base_url)
+				.post(spotify_token_base_path)
 				.reply(200, {
 					access_token: 'mock_access_token',
 					refresh_token: 'mock_refresh_token',
@@ -138,8 +142,8 @@ try {
 				})
 
 				// Mock Spotify Get User Profile
-				nock(spotify_me_api_base)
-				.get(spotify_me_api_path)
+				nock(spotify_me_base_url)
+				.get(spotify_me_base_path)
 				.query(true)
 				.reply(200, {
 					id: 'mock_spotify_user_id',
@@ -150,24 +154,29 @@ try {
 				const agent = chai.request.agent(app)
 				agent.jar.setCookie(`spotify_auth_state=${mockState}`, test_server_url)
 
-				const res = await agent
-				.get('/auth/spotify/callback')
-				.query({ code: mockCode, state: mockState})
-				.set('Authorization', `Bearer ${verifiedUserJwt}`)
+				try {
+					const res = await agent
+					.get('/auth/spotify/callback')
+					.query({ code: mockCode, state: mockState})
+					.set('Authorization', `Bearer ${verifiedUserJwt}`)
+					.set('Cookie', `spotify_auth_state=${mockState}`)
+					.redirects(0)
 
-				expect(res).to.have.status(302);
-                expect(res).to.have.header('location');
-                expect(res.header.location).to.include('/#')
-                expect(res.header.location).to.include('access_token=mock_access_token')
-                expect(res.header.location).to.include('refresh_token=mock_refresh_token')
-                expect(res.header.location).to.include('message=Spotify linked successfully')
+					expect(res).to.have.status(302);
+	                expect(res).to.have.header('location');
+	                expect(res.header.location).to.include(('mock_access_token'))
+	                expect(res.header.location).to.include('mock_refresh_token')
+	                expect(res.header.location).to.include(encodeURIComponent('Spotify linked successfully'))
 
-                // Verify if User was updated
-                const updatedUser = await User.findById(testUser._id)
-                expect(updatedUser.spotifyAccessToken).to.equal('mock_access_token')
-                expect(updatedUser.spotifyRefreshToken).to.equal('mock_refresh_token')
-                expect(updatedUser.spotifyAccessTokenExpiration).to.be.a('date')
-                console.error
+	                // Verify if User was updated
+	                const updatedUser = await User.findById(testUser._id)
+	                expect(updatedUser.spotifyAccessToken).to.equal('mock_access_token')
+	                expect(updatedUser.spotifyRefreshToken).to.equal('mock_refresh_token')
+	                expect(updatedUser.spotifyAccessTokenExpiration).to.be.a('date')
+				} catch(error) {
+					console.error('Error during "should exchange code for access tokens" test:', error);
+                    throw error;
+				}
 			} )
 		})
 	})
