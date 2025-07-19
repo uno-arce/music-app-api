@@ -44,18 +44,28 @@ module.exports.requestAuthorization = (req, res) => {
 
 // Request Access Token
 module.exports.requestAccessToken = (req, res) => {
-	const code = req.query.code || null
-	const state = req.query.state || null
-	const storedState = req.cookies ? req.cookies[stateKey] : null
+	console.log('--- Inside requestAccessToken function ---')
+    console.log('Raw Request Headers:', req.headers)
+    console.log('Request Query:', req.query)
+    console.log('Request Cookies:', req.cookies)empty
 
-	if (state === null || state !== storedState) {
-		res.redirect('/#' +
-			querystring.stringify({
-				error: 'state_mismatch'
-			})
-		)
-	} else {
-		const userId = req.user._id
+    const code = req.query.code || null;
+    const state = req.query.state || null;
+    const storedState = req.cookies ? req.cookies[stateKey] : null;
+
+    console.log(`Code: ${code}, State: ${state}, StoredState: ${storedState}`);
+
+    if (state === null || state !== storedState) {
+        console.log('State mismatch detected. Redirecting.');
+        return res.redirect('/#' +
+            querystring.stringify({
+                error: 'state_mismatch'
+            })
+        );
+    } else {
+		const userId = req.user.id
+
+		console.log(req.user)
 
 		if(!userId) {
 			return res.redirect('/#' + querystring.stringify({ error: 'Authentication required'}))
@@ -77,6 +87,7 @@ module.exports.requestAccessToken = (req, res) => {
 			json: true
 		}
 
+		console.log('authOptions being sent to Spotify token endpoint:', authOptions.form);
 		request.post(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
 				const {access_token, refresh_token, expires_in} = body
@@ -88,6 +99,25 @@ module.exports.requestAccessToken = (req, res) => {
 				}
 
 				request.get(options, async function(error, response, body)  {
+					if (error) {
+                        console.error('Error during Spotify /me GET request:', error);
+                        return res.redirect('/#' +
+                            querystring.stringify({
+                                error: 'network_or_me_request_error',
+                                details: error.message
+                            })
+                        );
+                    }
+                    if (response.statusCode !== 200) {
+                        console.error(`Spotify /me GET request failed with status ${response.statusCode}. Body:`, body);
+                        return res.redirect('/#' + 
+                            querystring.stringify({
+                                error: 'spotify_me_api_error',
+                                details: body
+                            })
+                        );
+                    }
+
 					try {
 						const user = await User.findOneAndUpdate({ _id: userId},
 							{
@@ -106,7 +136,7 @@ module.exports.requestAccessToken = (req, res) => {
 							return res.redirect('/#'  + querystring.stringify({error: 'User not found'}))
 						}
 
-						res.redirect('/#' +
+						return res.redirect('/#' +
 							querystring.stringify({
 								access_token: access_token,
 								refresh_token: refresh_token,
@@ -114,7 +144,7 @@ module.exports.requestAccessToken = (req, res) => {
 							})
 						)
 					}  catch (dbErr) {
-						res.redirect('/#' +
+						return res.redirect('/#' +
 							querystring.stringify({
 								error: 'Database error'
 							})
@@ -122,7 +152,7 @@ module.exports.requestAccessToken = (req, res) => {
 					}
 				})
 			} else {
-				res.redirect('/#' +
+				return res.redirect('/#' +
 					querystring.stringify({
 						error: 'invalid_token'
 					})
