@@ -179,6 +179,66 @@ try {
 				}
 			} )
 		})
+
+		describe('App Request Refresh Token Spotify (GET /auth/spotify/refresh-token)', function() {
+			let testUser
+
+			beforeEach(async function() {
+				testUser = await User.findOne({email: 'uno@gmail.com'})
+
+				nock.cleanAll()
+			})
+
+			afterEach(async function() {
+				await User.findOneAndUpdate({_id: testUser._id},
+					{
+						$set: {
+							spotifyAccessToken: null,
+							spotifyRefreshToken: null,
+							spotifyAccessTokenExpiration: null
+						}
+					}
+				)
+
+				if (!nock.isDone()) {
+					console.error('Not all nock interceptors were used:', nock.pendingMocks());
+				    throw new Error('Nock interceptors not used!');
+				} else {
+					console.log('Is nock done?', nock.isDone());
+				}
+			})
+
+			it('should return new spotify access token and update user in db', async () => {
+				const verifiedUserJwt = auth.createAccessToken(testUser)
+
+				// Mock spotify refresh access token
+				nock(spotify_token_base_url)
+				.post(spotify_token_base_path)
+				.reply(200, {
+					access_token: 'new_access_token',
+					refresh_token: 'valid_refresh_token',
+					expires_in: 3600
+				})
+
+				try {
+					const res = await chai.request(app)
+					.get('/auth/spotify/refresh-token?refresh_token=valid_refresh_token')
+					.type('json')
+					.set('Authorization', `Bearer ${verifiedUserJwt}`)
+
+					expect(res).to.have.status(200)
+					expect(res.body.access_token).to.equal('new_access_token')
+
+					// Verify if user was updated
+					const updatedUser = await User.findById(testUser._id)
+					expect(updatedUser.spotifyAccessToken).to.equal('new_access_token')
+					expect(updatedUser.spotifyRefreshToken).to.equal('valid_refresh_token')
+					expect(new Date(updatedUser.spotifyAccessTokenExpiration).getTime()).to.be.above(Date.now())
+				} catch(err) {
+					console.log(err)
+				}
+			})
+		})
 	})
 
 } catch(err) {
