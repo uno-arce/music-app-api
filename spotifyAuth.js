@@ -14,6 +14,7 @@ const redirect_uri = process.env.REDIRECT_URI
 const spotify_authorize_url = 'https://accounts.spotify.com/authorize'
 const spotify_token_url = 'https://accounts.spotify.com/api/token'
 const spotify_me_url = 'https://api.spotify.com/v1/me'
+const spotify_api_base_url = 'https://api.spotify.com/v1'
 
 
 const generateRandomString = (length) => {
@@ -47,7 +48,7 @@ module.exports.requestAccessToken = (req, res) => {
 	console.log('--- Inside requestAccessToken function ---')
     console.log('Raw Request Headers:', req.headers)
     console.log('Request Query:', req.query)
-    console.log('Request Cookies:', req.cookies)empty
+    console.log('Request Cookies:', req.cookies)
 
     const code = req.query.code || null;
     const state = req.query.state || null;
@@ -164,46 +165,61 @@ module.exports.requestAccessToken = (req, res) => {
 
 // Refresh Access Token
 module.exports.refreshToken = async (req, res) => {
-	const userId = req.user._id
+	const userId = req.user.id
 	
-	try {
-		const refresh_token_from_client = req.query.refresh_token
+	const refresh_token_from_client = req.query.refresh_token
 
-		if(!refresh_token_from_client) {
-			return res.status(400).send({ error: 'Refresh token missing'})
-		}
+	if(!refresh_token_from_client) {
+		return res.status(400).send({ error: 'Refresh token missing'})
+	}
 
-		const authOptions  = {
-			url: spotify_token_url,
-			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded',
-				'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')) 
-			},
-			form: {
-				grant_type: 'refresh_token',
-				refresh_token: refresh_token
-			},
-			json: true
-		}
+	const authOptions  = {
+		url: spotify_token_url,
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded',
+			'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64')) 
+		},
+		form: {
+			grant_type: 'refresh_token',
+			refresh_token: refresh_token_from_client
+		},
+		json: true
+	}
 
-		request.post(authOptions, function(error, response, body) {
-			if (!error && response.statusCode === 200) {
-				const access_token = body.access_token
-				const new_refresh_token = body.refresh_token || refresh_token_from_client
-				const expires_in = body.expires_in
+	request.post(authOptions, async function(error, response, body) {
+		if (!error && response.statusCode === 200) {
+			const access_token = body.access_token
+			const new_refresh_token = body.refresh_token || refresh_token_from_client
+			const expires_in = body.expires_in
 
-				res.send({
+			try {
+				const updatedUser = await User.findOneAndUpdate({ _id: userId },
+				{
+					spotifyAccessToken: access_token,
+					spotifyRefreshToken: new_refresh_token,
+					spotifyAccessTokenExpiration: new Date(Date.now() + expires_in * 1000)
+
+				},{
+					upsert: true,
+					new:  true,
+					setDefaultOnInsert: true
+
+				})
+
+				console.log(updatedUser)
+
+				return res.status(200).send({
 					'access_token': access_token,
-					'refresh_token': refresh_token,
+					'refresh_token': new_refresh_token,
 					'expires_in': expires_in
 				})
-			} else {
-				return res.status(response ? response.statusCode : 500).send({
-					error: 'Token refresh failed'
-				})
+			} catch (dbErr) {
+				console.error(dbErr)
 			}
-		})
-	} catch(dbErr) {
-		res.status(500).send({ error: 'Database error'})
-	}
+		} else {
+			return res.status(response ? response.statusCode : 500).send({
+				error: 'Token refresh failed'
+			})
+		}
+	})
 }
