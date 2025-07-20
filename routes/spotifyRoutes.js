@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const { verify } = require('../auth.js')
 const spotifyAuth = require('../spotifyAuth.js')
+const spotifyController = require('../controllers/spotifyController.js')
 
 // Spotify Authorization Code Flow
 router.get('/', verify, spotifyAuth.requestAuthorization)
@@ -9,5 +10,6 @@ router.get('/callback', verify, spotifyAuth.requestAccessToken)
 router.get('/refresh-token', verify, spotifyAuth.refreshToken)
 
 // Spotify API Calls
+router.get('/saved-tracks', verify, spotifyController.getSavedTracksFromLibrary)
 
 module.exports = router
