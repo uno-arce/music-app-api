@@ -11,5 +11,9 @@ router.get('/refresh-token', verify, spotifyAuth.refreshToken)
 
 // Spotify API Calls
 router.get('/saved-tracks', verify, spotifyController.getSavedTracksFromLibrary)
+router.get('/playlists', verify, spotifyController.getCurrentUsersPlaylists)
+router.get('/recently-played', verify, spotifyController.getRecentlyPlayedTracks)
+router.get('/mostly-played', verify, spotifyController.getMostlyPlayedTracks)
+router.get('/mostly-listened', verify, spotifyController.getMostlyListenedArtists)
 
 module.exports = router
