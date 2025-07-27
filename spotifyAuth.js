@@ -45,16 +45,9 @@ module.exports.requestAuthorization = (req, res) => {
 
 // Request Access Token
 module.exports.requestAccessToken = (req, res) => {
-	console.log('--- Inside requestAccessToken function ---')
-    console.log('Raw Request Headers:', req.headers)
-    console.log('Request Query:', req.query)
-    console.log('Request Cookies:', req.cookies)
-
     const code = req.query.code || null;
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
-
-    console.log(`Code: ${code}, State: ${state}, StoredState: ${storedState}`);
 
     if (state === null || state !== storedState) {
         console.log('State mismatch detected. Redirecting.');
