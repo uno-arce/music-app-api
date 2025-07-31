@@ -18,7 +18,8 @@ mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atl
 const app = express()
 
 const corsOptions = {
-	origin: ['http://192.168.1.15:3000'],
+	// local host for development
+	origin: ['http://192.168.1.15:3000', 'http://localhost:5173'],
 	credentials: true,
 	optionsSuccessStatus: 200
 }
