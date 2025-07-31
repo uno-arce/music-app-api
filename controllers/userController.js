@@ -76,9 +76,9 @@ module.exports.loginUser = async (req, res) => {
 			return res.status(400).send({ error: 'Incorrect email or password'})
 		}
 
-		else {
-			return res.status(200).send({ access: auth.createAccessToken(user), message: "User login successfully"})
-		}
+		const token = auth.createAccessToken(user, res)
+
+		return res.status(200).send({ message: "User login successfully"})
 	} catch(err) {
 		console.log(err)
 		res.status(500).send({ error: 'Error on logging in' })
