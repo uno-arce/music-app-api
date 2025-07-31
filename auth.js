@@ -7,23 +7,30 @@ dotenv.config()
 const secret = process.env.SECRET
 
 // Token Creation
-module.exports.createAccessToken = (user) => {
+module.exports.createAccessToken = (user, res) => {
 	const data = {
 		id: user._id,
 		email: user.email,
-		isAdmin: user.isAdmin
+		username: user.username
 	}
+	
+	const token = jwt.sign(data, secret, {})
 
-	return jwt.sign(data, secret, {})
+	res.cookie('authToken', token, {
+		httpOnly: true,
+		secure: 'production',
+		sameSite:  'strict'
+	})
+
+	return token
 } 
 
 // Token Verification
 module.exports.verify = (req, res, next) => {
-	let token = req.headers.authorization
-	if(typeof token === 'undefined') {
+	let token = req.cookies.authToken
+
+	if(!token ) {
 		return res.status(400).send({ auth: 'Failed. No Token'} )
-	} else {
-		token = token.slice(7, token.length)
 	}
 
 	jwt.verify(token, secret, function(err, decodedToken) {
@@ -34,6 +41,7 @@ module.exports.verify = (req, res, next) => {
 			})
 		} else {
 			req.user = decodedToken
+			res.status(200).send({ message: 'User is authenticated'})
 			next()
 		}
 	})
