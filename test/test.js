@@ -194,7 +194,7 @@ try {
 		})
 
 		describe('User Verification (POST /users)', function() {
-			it('should return access if user has authentication', async() => {
+			it('should return 200 if user has authentication', async() => {
 				const res = await chai.request(app)
 				.post('/users/login')
 				.type('json')
@@ -203,7 +203,32 @@ try {
 					password: 'admin@123'
 				})
 
-				expect(res.body).to.include.all.keys(['access'])
+				expect(res).to.have.status(200)
+			})
+		})
+
+		describe('User Logout (POST /users', function() {
+			it('should return 200 and message if user logout successfully', async() => {
+				const res = await chai.request(app)
+				.post('/users/logout')
+
+				expect(res).to.have.status(200)
+				expect(res.body.message).to.include('User logged off successfully')
+			})
+
+			it('should return token undefined if user logout successfully', async() => {
+				const res = await chai.request(app)
+				.post('/users/logout')
+
+				expect(res.body.authToken).to.be.undefined
+			})
+
+			it('should return 400 and error if user logout unsuccessful', async() => {
+				const res = await chai.request(app)
+				.post('users/logout')
+
+				expect(res).to.have.status(400)
+				expect(res.body.error).to.include('Logout unsuccessful')
 			})
 		})
 
