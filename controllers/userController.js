@@ -85,6 +85,22 @@ module.exports.loginUser = async (req, res) => {
 	}
 }
 
+module.exports.logoutUser = async (req, res) => {
+	try {
+		res.clearCookie('authToken', {
+			httpOnly: true,
+			secure: 'production',
+			sameSite: 'strict'
+		})
+
+		const token = req.cookies.authToken
+
+		return res.status(200).send({ message: 'User logged off successfully', authToken: token })
+	} catch(err) {
+		return res.status(400).send({ error: 'Logout unsuccessful'})
+	}
+}
+
 module.exports.addSongRatings = async (req, res) => {
 	try {
 		const userId = req.user.id
