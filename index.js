@@ -19,7 +19,7 @@ const app = express()
 
 const corsOptions = {
 	// local host for development
-	origin: ['http://192.168.1.15:3000', 'http://localhost:5173'],
+	origin: ['http://127.0.0.1:3000', 'http://localhost:5173'],
 	credentials: true,
 	optionsSuccessStatus: 200
 }
