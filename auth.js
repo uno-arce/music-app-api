@@ -41,7 +41,6 @@ module.exports.verify = (req, res, next) => {
 			})
 		} else {
 			req.user = decodedToken
-			res.status(200).send({ message: 'User is authenticated'})
 			next()
 		}
 	})
