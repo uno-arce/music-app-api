@@ -11,7 +11,7 @@ const client_secret = process.env.CLIENT_SECRET
 const redirect_uri = process.env.REDIRECT_URI
 
 // Spotify API Endpoints
-const spotify_authorize_url = 'https://accounts.spotify.com/authorize'
+const spotify_authorize_url = 'https://accounts.spotify.com/authorize?'
 const spotify_token_url = 'https://accounts.spotify.com/api/token'
 const spotify_me_url = 'https://api.spotify.com/v1/me'
 const spotify_api_base_url = 'https://api.spotify.com/v1'
@@ -50,21 +50,12 @@ module.exports.requestAccessToken = (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        console.log('State mismatch detected. Redirecting.');
         return res.redirect('/#' +
             querystring.stringify({
                 error: 'state_mismatch'
             })
         );
     } else {
-		const userId = req.user.id
-
-		console.log(req.user)
-
-		if(!userId) {
-			return res.redirect('/#' + querystring.stringify({ error: 'Authentication required'}))
-		}
-
 		res.clearCookie(stateKey)
 
 		const authOptions = {
@@ -81,70 +72,16 @@ module.exports.requestAccessToken = (req, res) => {
 			json: true
 		}
 
-		console.log('authOptions being sent to Spotify token endpoint:', authOptions.form);
 		request.post(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
 				const {access_token, refresh_token, expires_in} = body
 
-				const options = {
-					url: spotify_me_url,
-					headers: { 'Authorization': 'Bearer ' + access_token},
-					json: true
-				}
-
-				request.get(options, async function(error, response, body)  {
-					if (error) {
-                        console.error('Error during Spotify /me GET request:', error);
-                        return res.redirect('/#' +
-                            querystring.stringify({
-                                error: 'network_or_me_request_error',
-                                details: error.message
-                            })
-                        );
-                    }
-                    if (response.statusCode !== 200) {
-                        console.error(`Spotify /me GET request failed with status ${response.statusCode}. Body:`, body);
-                        return res.redirect('/#' + 
-                            querystring.stringify({
-                                error: 'spotify_me_api_error',
-                                details: body
-                            })
-                        );
-                    }
-
-					try {
-						const user = await User.findOneAndUpdate({ _id: userId},
-							{
-								spotifyAccessToken: access_token,
-								spotifyRefreshToken: refresh_token,
-								spotifyAccessTokenExpiration: new Date(Date.now() + expires_in * 1000)
-							},
-							{
-								upsert: true,
-								new:  true,
-								setDefaultOnInsert: true
-							}
-						)
-
-						if(!user) {
-							return res.redirect('/#'  + querystring.stringify({error: 'User not found'}))
-						}
-
-						return res.redirect('/#' +
-							querystring.stringify({
-								access_token: access_token,
-								refresh_token: refresh_token,
-								message: 'Spotify linked successfully'
-							})
-						)
-					}  catch (dbErr) {
-						return res.redirect('/#' +
-							querystring.stringify({
-								error: 'Database error'
-							})
-						)
-					}
-				})
+				return res.redirect('/#' +
+					querystring.stringify({
+						access_token: access_token,
+						refresh_token: refresh_token,
+					})
+				)
 			} else {
 				return res.redirect('/#' +
 					querystring.stringify({
@@ -215,4 +152,32 @@ module.exports.refreshToken = async (req, res) => {
 			})
 		}
 	})
+}
+
+module.exports.saveSpotifyTokens = async (req, res) => {
+	const userId = req.user.id
+	const { accessToken, refreshToken } = req.body
+
+	if(!userId) {
+		return res.status(400).send({ message: "User not authenticated"})
+	}
+
+	try {
+		await User.findOneAndUpdate({ _id: userId }, {
+			spotifyAccessToken: accessToken,
+			spotifyRefreshToken: refreshToken,
+		}, {
+			upsert: true,
+			new:  true,
+			setDefaultOnInsert: true
+		})
+
+		return res.status(200).send({ message: 'Update successful'})
+	} catch(dbErr) {
+		console.log(dbErr)
+		return res.status(500).send({ error: 'Error in updating database' + error})
+	}
+
+
+	return
 }
