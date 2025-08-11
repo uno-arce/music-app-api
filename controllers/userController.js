@@ -93,9 +93,7 @@ module.exports.logoutUser = async (req, res) => {
 			sameSite: 'strict'
 		})
 
-		const token = req.cookies.authToken
-
-		return res.status(200).send({ message: 'User logged off successfully', authToken: token })
+		return res.status(200).send({ message: 'User logged off successfully' })
 	} catch(err) {
 		return res.status(400).send({ error: 'Logout unsuccessful'})
 	}
