@@ -50,7 +50,7 @@ module.exports.requestAccessToken = (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.redirect('/#' +
+        return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
             querystring.stringify({
                 error: 'state_mismatch'
             })
@@ -76,14 +76,15 @@ module.exports.requestAccessToken = (req, res) => {
 			if(!error && response.statusCode === 200) {
 				const {access_token, refresh_token, expires_in} = body
 
-				return res.redirect('/#' +
+				return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
 					querystring.stringify({
 						access_token: access_token,
 						refresh_token: refresh_token,
+						expires_in: expires_in
 					})
 				)
 			} else {
-				return res.redirect('/#' +
+				return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
 					querystring.stringify({
 						error: 'invalid_token'
 					})
@@ -156,7 +157,7 @@ module.exports.refreshToken = async (req, res) => {
 
 module.exports.saveSpotifyTokens = async (req, res) => {
 	const userId = req.user.id
-	const { accessToken, refreshToken } = req.body
+	const { accessToken, refreshToken, expiresIn } = req.body
 
 	if(!userId) {
 		return res.status(400).send({ message: "User not authenticated"})
@@ -166,6 +167,7 @@ module.exports.saveSpotifyTokens = async (req, res) => {
 		await User.findOneAndUpdate({ _id: userId }, {
 			spotifyAccessToken: accessToken,
 			spotifyRefreshToken: refreshToken,
+			spotifyAccessTokenExpiration: expiresIn
 		}, {
 			upsert: true,
 			new:  true,
