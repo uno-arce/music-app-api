@@ -98,9 +98,9 @@ module.exports.requestAccessToken = (req, res) => {
 module.exports.refreshToken = async (req, res) => {
 	const userId = req.user.id
 	
-	const refresh_token_from_client = req.query.refresh_token
+	const refreshTokenFromClient = req.body.refreshToken
 
-	if(!refresh_token_from_client) {
+	if(!refreshTokenFromClient) {
 		return res.status(400).send({ error: 'Refresh token missing'})
 	}
 
@@ -112,23 +112,25 @@ module.exports.refreshToken = async (req, res) => {
 		},
 		form: {
 			grant_type: 'refresh_token',
-			refresh_token: refresh_token_from_client
+			refresh_token: refreshTokenFromClient
 		},
 		json: true
 	}
 
 	request.post(authOptions, async function(error, response, body) {
 		if (!error && response.statusCode === 200) {
-			const access_token = body.access_token
-			const new_refresh_token = body.refresh_token || refresh_token_from_client
-			const expires_in = body.expires_in
+			const accessToken = body.access_token
+			const newRefreshToken = body.refresh_token || refresh_token_from_client
+			const expiresIn = body.expires_in
+
+			const expirationDate = new Date(Date.now() + expiresIn * 1000)
 
 			try {
 				const updatedUser = await User.findOneAndUpdate({ _id: userId },
 				{
 					spotifyAccessToken: access_token,
 					spotifyRefreshToken: new_refresh_token,
-					spotifyAccessTokenExpiration: new Date(Date.now() + expires_in * 1000)
+					spotifyAccessTokenExpiration: expirationDate
 
 				},{
 					upsert: true,
@@ -137,13 +139,7 @@ module.exports.refreshToken = async (req, res) => {
 
 				})
 
-				console.log(updatedUser)
-
-				return res.status(200).send({
-					'access_token': access_token,
-					'refresh_token': new_refresh_token,
-					'expires_in': expires_in
-				})
+				return res.status(200).send({ message: 'Update successful' })
 			} catch (dbErr) {
 				console.error(dbErr)
 			}
@@ -158,16 +154,13 @@ module.exports.refreshToken = async (req, res) => {
 module.exports.saveSpotifyTokens = async (req, res) => {
 	const userId = req.user.id
 	const { accessToken, refreshToken, expiresIn } = req.body
-
-	if(!userId) {
-		return res.status(400).send({ message: "User not authenticated"})
-	}
+	const expirationDate = new Date(Date.now() + expiresIn * 1000)
 
 	try {
 		await User.findOneAndUpdate({ _id: userId }, {
 			spotifyAccessToken: accessToken,
 			spotifyRefreshToken: refreshToken,
-			spotifyAccessTokenExpiration: expiresIn
+			spotifyAccessTokenExpiration: expirationDate
 		}, {
 			upsert: true,
 			new:  true,
@@ -179,7 +172,29 @@ module.exports.saveSpotifyTokens = async (req, res) => {
 		console.log(dbErr)
 		return res.status(500).send({ error: 'Error in updating database' + error})
 	}
+}
 
+module.exports.verifyTokenExpiration = async (req, res) => {
+	const user = User.findById(req.user.id)
 
-	return
+	if(!user || !user.spotifyAccessToken) {
+		return res.status(400).send({ error: 'No authorization found'})
+	}
+
+	if(new Date > user.spotifyAccessTokenExpiration) {
+		try {
+			await refreshToken({
+				body: { refreshToken: user.spotifyRefreshToken }
+			}, res)
+
+			const updatedUser = await User.findById(req.user.id)
+			req.user.spotifyAccessToken = updatedUser.spotifyAccessToken
+			return next()
+		} catch(dbErr) {
+			console.log(dbErr)
+			return res.status(500).send({ error: 'Failed to refresh token'})
+		}
+	} else {
+		next()
+	}
 }
