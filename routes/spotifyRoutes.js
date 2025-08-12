@@ -7,7 +7,7 @@ const spotifyController = require('../controllers/spotifyController.js')
 // Spotify Authorization Code Flow
 router.get('/', spotifyAuth.requestAuthorization)
 router.get('/callback', spotifyAuth.requestAccessToken)
-router.get('/refresh-token', spotifyAuth.refreshToken)
+router.get('/refresh-token', verify, spotifyAuth.verifyTokenExpiration)
 router.post('/save-tokens', verify, spotifyAuth.saveSpotifyTokens)
 
 // Spotify API Calls
