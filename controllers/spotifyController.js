@@ -76,17 +76,15 @@ module.exports.getCurrentUsersPlaylists = async (req, res) => {
 
 module.exports.getRecentlyPlayedTracks = async (req, res) => {
 	try {
-		const userId  = req.user.id
+		const accessToken  = req.user.spotifyAccessToken
 
-		const user = await User.findById(userId)
-
-		if(!user || !user.spotifyAccessToken) {
+		if(!accessToken) {
 			return res.status(404).send({ error: 'Spotify access token not found' })
 		}
 
 		const authOptions = {
 			url: spotify_me_url+recentlyPlayed,
-			headers: {'Authorization': `Bearer ${user.spotifyAccessToken}`},
+			headers: {'Authorization': `Bearer ${accessToken}`},
 			qs: { limit: tracksLimit },
 			json: true
 		}
