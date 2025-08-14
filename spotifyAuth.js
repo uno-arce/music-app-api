@@ -175,7 +175,7 @@ module.exports.saveSpotifyTokens = async (req, res) => {
 }
 
 module.exports.verifyTokenExpiration = async (req, res) => {
-	const user = User.findById(req.user.id)
+	const user = await User.findById(req.user.id)
 
 	if(!user || !user.spotifyAccessToken) {
 		return res.status(400).send({ error: 'No authorization found'})
@@ -195,6 +195,17 @@ module.exports.verifyTokenExpiration = async (req, res) => {
 			return res.status(500).send({ error: 'Failed to refresh token'})
 		}
 	} else {
+		req.user.spotifyAccessToken = user.spotifyAccessToken
 		next()
 	}
+}
+
+module.exports.verifyUserAuthorization = async (req, res) => {
+	const user = await User.findById(req.user.id)
+
+	if(!user.spotifyAccessToken) {
+		return res.status(400).send({ error: 'No authorization found' })
+	}
+
+	return res.status(200).send({ message: 'User is authorized to spotify' })
 }
