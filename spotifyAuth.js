@@ -27,7 +27,7 @@ const generateRandomString = (length) => {
 const stateKey = 'spotify_auth_state'
 
 // Request Authorization
-module.exports.requestAuthorization = (req, res) => {
+const requestAuthorization = (req, res) => {
 	const state = generateRandomString(16)
 	res.cookie(stateKey, state)
 
@@ -44,7 +44,7 @@ module.exports.requestAuthorization = (req, res) => {
 }
 
 // Request Access Token
-module.exports.requestAccessToken = (req, res) => {
+const requestAccessToken = (req, res) => {
     const code = req.query.code || null;
     const state = req.query.state || null;
     const storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -95,15 +95,7 @@ module.exports.requestAccessToken = (req, res) => {
 }
 
 // Refresh Access Token
-module.exports.refreshToken = async (req, res) => {
-	const userId = req.user.id
-	
-	const refreshTokenFromClient = req.body.refreshToken
-
-	if(!refreshTokenFromClient) {
-		return res.status(400).send({ error: 'Refresh token missing'})
-	}
-
+const refreshToken = async (refreshTokenFromDb) => {
 	const authOptions  = {
 		url: spotify_token_url,
 		headers: {
@@ -112,46 +104,30 @@ module.exports.refreshToken = async (req, res) => {
 		},
 		form: {
 			grant_type: 'refresh_token',
-			refresh_token: refreshTokenFromClient
+			refresh_token: refreshTokenFromDb
 		},
 		json: true
 	}
 
-	request.post(authOptions, async function(error, response, body) {
-		if (!error && response.statusCode === 200) {
-			const accessToken = body.access_token
-			const newRefreshToken = body.refresh_token || refresh_token_from_client
-			const expiresIn = body.expires_in
+	return new Promise((resolve, reject) => {
+		request.post(authOptions, async function(error, response, body) {
+			if (!error && response.statusCode === 200) {
+				const { access_token, refresh_token, expires_in } = body
+				const expirationDate = new Date(Date.now() + expires_in * 1000)
 
-			const expirationDate = new Date(Date.now() + expiresIn * 1000)
-
-			try {
-				const updatedUser = await User.findOneAndUpdate({ _id: userId },
-				{
-					spotifyAccessToken: access_token,
-					spotifyRefreshToken: new_refresh_token,
-					spotifyAccessTokenExpiration: expirationDate
-
-				},{
-					upsert: true,
-					new:  true,
-					setDefaultOnInsert: true
-
+				resolve({
+					accessToken: access_token,
+					newRefreshToken: refresh_token || refreshTokenFromDb,
+					expirationDate
 				})
-
-				return res.status(200).send({ message: 'Update successful' })
-			} catch (dbErr) {
-				console.error(dbErr)
+			} else {
+				reject(new Error('Token refresh failed'))
 			}
-		} else {
-			return res.status(response ? response.statusCode : 500).send({
-				error: 'Token refresh failed'
-			})
-		}
+		})
 	})
 }
 
-module.exports.saveSpotifyTokens = async (req, res) => {
+const saveSpotifyTokens = async (req, res) => {
 	const userId = req.user.id
 	const { accessToken, refreshToken, expiresIn } = req.body
 	const expirationDate = new Date(Date.now() + expiresIn * 1000)
@@ -174,22 +150,32 @@ module.exports.saveSpotifyTokens = async (req, res) => {
 	}
 }
 
-module.exports.verifyTokenExpiration = async (req, res) => {
+const verifyTokenExpiration = async (req, res, next) => {
 	const user = await User.findById(req.user.id)
+	const userId = req.user.id
 
 	if(!user || !user.spotifyAccessToken) {
 		return res.status(400).send({ error: 'No authorization found'})
 	}
 
-	if(new Date > user.spotifyAccessTokenExpiration) {
+	if(new Date() > user.spotifyAccessTokenExpiration) {
 		try {
-			await refreshToken({
-				body: { refreshToken: user.spotifyRefreshToken }
-			}, res)
+			const { accessToken, newRefreshToken, expirationDate } = await refreshToken(user.spotifyRefreshToken)
 
-			const updatedUser = await User.findById(req.user.id)
-			req.user.spotifyAccessToken = updatedUser.spotifyAccessToken
-			return next()
+			await User.findOneAndUpdate({ _id: userId },
+				{
+					spotifyAccessToken: accessToken,
+					spotifyRefreshToken: newRefreshToken,
+					spotifyAccessTokenExpiration: expirationDate
+
+				},{
+					upsert: true,
+					new:  true,
+					setDefaultOnInsert: true
+
+				})
+			req.user.spotifyAccessToken = accessToken
+			next()
 		} catch(dbErr) {
 			console.log(dbErr)
 			return res.status(500).send({ error: 'Failed to refresh token'})
@@ -200,7 +186,7 @@ module.exports.verifyTokenExpiration = async (req, res) => {
 	}
 }
 
-module.exports.verifyUserAuthorization = async (req, res) => {
+const verifyUserAuthorization = async (req, res) => {
 	const user = await User.findById(req.user.id)
 
 	if(!user.spotifyAccessToken) {
@@ -208,4 +194,13 @@ module.exports.verifyUserAuthorization = async (req, res) => {
 	}
 
 	return res.status(200).send({ message: 'User is authorized to spotify' })
+}
+
+module.exports = {
+	requestAuthorization,
+	requestAccessToken,
+	refreshToken,
+	saveSpotifyTokens,
+	verifyTokenExpiration,
+	verifyUserAuthorization
 }

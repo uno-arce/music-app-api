@@ -1,7 +1,9 @@
+const request = require('request')
 const spotifyAuth = require('../spotifyAuth.js')
 const User = require('../models/User')
 
-const { spotify_api_base_url, spotify_me_url } = require('../spotifyAuth')
+const spotify_me_url = 'https://api.spotify.com/v1/me'
+const spotify_api_base_url = 'https://api.spotify.com/v1'
 
 // Spotify API Data Endpoints
 const tracks = '/tracks'
@@ -90,9 +92,10 @@ module.exports.getRecentlyPlayedTracks = async (req, res) => {
 		}
 
 		request.get(authOptions, function(error, response, body) {
-			if(!error && request.statusCode === 200) {
+			if(!error && response.statusCode === 200) {
 				return res.status(200).send(body)
 			} else {
+				console.log("Error:" + error)
 				return res.status(500).send({ error: 'Failed to fetch user recently played tracks'})
 			}
 		})
