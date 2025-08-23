@@ -12,16 +12,29 @@ router.get('/verify-authorization', verify, spotifyAuth.verifyUserAuthorization)
 router.post('/save-tokens', verify, spotifyAuth.saveSpotifyTokens)
 
 // Spotify API Calls
-router.get('/saved-tracks', verify, spotifyController.getSavedTracksFromLibrary)
-router.get('/playlists', verify, spotifyController.getCurrentUsersPlaylists)
+router.get('/saved-tracks', 
+	verify,
+	spotifyAuth.verifyTokenExpiration,
+	spotifyController.getSavedTracksFromLibrary)
 
-router.get(
-	'/recently-played', 
+router.get('/playlists', 
+	verify,
+	spotifyAuth.verifyTokenExpiration,
+	spotifyController.getCurrentUsersPlaylists)
+
+router.get('/recently-played', 
 	verify, 
 	spotifyAuth.verifyTokenExpiration, 
 	spotifyController.getRecentlyPlayedTracks)
 
-router.get('/mostly-played', verify, spotifyController.getMostlyPlayedTracks)
-router.get('/mostly-listened', verify, spotifyController.getMostlyListenedArtists)
+router.get('/mostly-played', 
+	verify,
+	spotifyAuth.verifyTokenExpiration, 
+	spotifyController.getMostlyPlayedTracks)
+
+router.get('/mostly-listened', 
+	verify,
+	spotifyAuth.verifyTokenExpiration, 
+	spotifyController.getMostlyListenedArtists)
 
 module.exports = router
