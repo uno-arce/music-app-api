@@ -17,17 +17,15 @@ const artistsLimit = 3
 
 module.exports.getSavedTracksFromLibrary = async (req, res) => {
 	try {
-		const userId = req.user.id 
+		const accessToken  = req.user.spotifyAccessToken
 
-		const user = await User.findById(userId)
-
-		if(!user || !user.spotifyAccessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found'})
+		if(!accessToken) {
+			return res.status(404).send({ error: 'Spotify access token not found' })
 		}
 
 		const authOptions = {
 			url: spotify_me_url+tracks,
-			headers: {'Authorization': `Bearer ${user.spotifyAccessToken}`},
+			headers: {'Authorization': `Bearer ${accessToken}`},
 			json: true
 		}
 
@@ -47,17 +45,15 @@ module.exports.getSavedTracksFromLibrary = async (req, res) => {
 
 module.exports.getCurrentUsersPlaylists = async (req, res) => {
 	try {
-		const userId = req.user.id 
+		const accessToken  = req.user.spotifyAccessToken
 
-		const user = await User.findById(userId)
-
-		if(!user || !user.spotifyAccessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found'})
+		if(!accessToken) {
+			return res.status(404).send({ error: 'Spotify access token not found' })
 		}
 
 		const authOptions = {
 			url: spotify_me_url+playlists,
-			headers: {'Authorization': `Bearer ${user.spotifyAccessToken}`},
+			headers: {'Authorization': `Bearer ${accessToken}`},
 			json: true
 		}
 
@@ -107,17 +103,15 @@ module.exports.getRecentlyPlayedTracks = async (req, res) => {
 
 module.exports.getMostlyPlayedTracks = async (req, res) => {
 	try {
-		const userId = req.user.id
+		const accessToken  = req.user.spotifyAccessToken
 
-		const user = await User.findById(userId)
-
-		if(!user || !user.spotifyAccessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found'})
+		if(!accessToken) {
+			return res.status(404).send({ error: 'Spotify access token not found' })
 		}
 
 		const authOptions = {
 			url: spotify_me_url+mostlyPlayed,
-			headers: {'Authorization': `Bearer ${user.spotifyAccessToken}`},
+			headers: {'Authorization': `Bearer ${accessToken}`},
 			qs: { limit: tracksLimit },
 			json: true
 		}
@@ -138,17 +132,15 @@ module.exports.getMostlyPlayedTracks = async (req, res) => {
 
 module.exports.getMostlyListenedArtists = async (req, res) => {
 	try {
-		const userId = req.user.id
+		const accessToken  = req.user.spotifyAccessToken
 
-		const user = await User.findById(userId)
-
-		if(!user || !user.spotifyAccessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found'})
+		if(!accessToken) {
+			return res.status(404).send({ error: 'Spotify access token not found' })
 		}
 
 		const authOptions = {
 			url: spotify_me_url+mostlyListened,
-			headers: {'Authorization': `Bearer ${user.spotifyAccessToken}`},
+			headers: {'Authorization': `Bearer ${accessToken}`},
 			qs: { limit: artistsLimit },
 			json: true
 		}
