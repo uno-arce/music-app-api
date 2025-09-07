@@ -102,11 +102,7 @@ module.exports.logoutUser = async (req, res) => {
 module.exports.addSongRatings = async (req, res) => {
 	try {
 		const userId = req.user.id
-		const ratedSongs = req.body.ratedSongs
-
-		if (!Array.isArray(ratedSongs) || ratedSongs.length === 0) {
-            return res.status(400).send({ error: 'Invalid or empty "ratedSongs" array provided in the request body' });
-        }
+		const ratedSong = req.body.ratedSong
 
 		const user = await User.findById(userId)
 
@@ -114,31 +110,25 @@ module.exports.addSongRatings = async (req, res) => {
 			return res.status(404).send({ error: 'Spotify access token not found'})
 		}
 
-		ratedSongs.forEach(newSongRating => { 
-            const { name, genre, rating } = newSongRating;
+		const { name, artist, genre, rating } = ratedSong
 
-            if (!name || typeof name !== 'string' || typeof rating !== 'number' || rating < 1 || rating > 5) {
-                console.warn(`Skipping invalid song rating entry for user ${userId}:`, newSongRating);
-                return;
-            }
+		const existingSongIndex = user.songs.findIndex(song => song.name === name)
 
-            const existingSongIndex = user.songs.findIndex(song => song.name === name);
+		if (existingSongIndex !== -1) {
+		    user.songs[existingSongIndex].rating = rating;
+		} else {
+		    user.songs.push({
+		        name: name,
+		        artist: artist,
+		        genre: genre,
+		        rating: rating,
+		        addedOn: new Date()
+		    })
+		}
 
-            if (existingSongIndex !== -1) {
-                user.songs[existingSongIndex].rating = rating;
-            } else {
-                user.songs.push({
-                    name: name,
-                    genre: genre,
-                    rating: rating,
-                    addedOn: new Date()
-                });
-            }
-        }); 
+        await user.save()
 
-        await user.save();
-
-        return res.status(200).send({ message: 'Song ratings added/updated successfully.' });
+        return res.status(200).send({ message: 'Song rating added/updated successfully.' })
 	} catch(dbErr) {
 		console.log(err)
 		return res.status(500).send({ error: 'Internal server error' })
