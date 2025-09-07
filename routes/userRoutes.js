@@ -9,6 +9,6 @@ router.post('/logout', userController.logoutUser)
 router.get('/verify', verify, (req, res) => {
 	res.status(200).send({ message: 'User is authenticated'})
 })
-router.post('/rate-songs', userController.addSongRatings)
+router.put('/rate-song', verify, userController.addSongRatings)
 
 module.exports = router
