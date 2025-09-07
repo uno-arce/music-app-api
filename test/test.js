@@ -232,6 +232,26 @@ try {
 			})
 		})
 
+		describe('User Add Rating (PUT /users', function() {
+			it('should add rated song if new or does not exist', async() => {
+				const res = await chai.request(app)
+				.put('/users/rate-song')
+				.type('json')
+				.send({
+					ratedSong: {
+						name: '300 Dreams',
+						artist: 'After',
+						genre: 'Pop',
+						rating: 3,
+					}
+				})
+				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTcyNjI5MDJ9._BI2U3r9yUQ-4rwg_Ixp_khrhneEbsrC_qWjEApG_2A')
+
+				expect(res).to.have.status(200)
+				expect(res.body.message).to.include('Song rating added/updated successfully')
+			})
+		})
+
 	})
 } catch(err) {
 	console.log('App cannot be found')
