@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
 				type: String,
 				required: false
 			},
+			artist: {
+				type: String,
+				required: false
+			},
 			genre: {
 				type: String,
 				required: false
@@ -41,18 +45,18 @@ const userSchema = new mongoose.Schema({
 				min: 1,
 				max: 5
 			},
-			ofTheDay: [
-				{
-					name: {
-						type: String,
-						required: true
-					},
-					addedOn: {
-						type: Date,
-						default: new Date()
-					}
-				}
-			],
+			addedOn: {
+				type: Date,
+				default: new Date()
+			}
+		}
+	],
+	highlights: [
+		{
+			name: {
+				type: String,
+				required: true
+			},
 			addedOn: {
 				type: Date,
 				default: new Date()
