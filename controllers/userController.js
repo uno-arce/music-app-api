@@ -35,7 +35,7 @@ module.exports.registerUser = async (req, res) => {
 	}
 
 	// password should be atleast 6 characters
-	if(req.body.password.length < 6) {
+	if(req.body.password.length <= 6) {
 		return res.status(400).send({ error: "Password must be atleast 6 characters"})
 	}
 
@@ -99,6 +99,21 @@ module.exports.logoutUser = async (req, res) => {
 	}
 }
 
+
+module.exports.checkEmailAvailability = async (req, res) => {
+	try {
+		const isEmailExisting = await User.findOne({ email: req.body.email }) 
+
+		if(isEmailExisting) {
+			return res.status(400).send({ error: 'Email was already taken' })
+		}
+
+		return res.status(200).send({ message: 'Email is available' })
+	} catch (dbErr) {
+		return res.status(500).send({ error: 'Checking unsuccessful' })
+	}
+}
+
 module.exports.addSongRatings = async (req, res) => {
 	try {
 		const userId = req.user.id
@@ -110,7 +125,7 @@ module.exports.addSongRatings = async (req, res) => {
 			return res.status(404).send({ error: 'Spotify access token not found'})
 		}
 
-		const { name, artist, genre, rating } = ratedSong
+		const { name, artist, rating } = ratedSong
 
 		const existingSongIndex = user.songs.findIndex(song => song.name === name)
 
@@ -120,7 +135,6 @@ module.exports.addSongRatings = async (req, res) => {
 		    user.songs.push({
 		        name: name,
 		        artist: artist,
-		        genre: genre,
 		        rating: rating,
 		        addedOn: new Date()
 		    })
@@ -130,7 +144,7 @@ module.exports.addSongRatings = async (req, res) => {
 
         return res.status(200).send({ message: 'Song rating added/updated successfully.' })
 	} catch(dbErr) {
-		console.log(err)
+		console.log(dbErr)
 		return res.status(500).send({ error: 'Internal server error' })
 	}
 }
