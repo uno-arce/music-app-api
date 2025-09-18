@@ -222,13 +222,33 @@ try {
 
 				expect(res.body.authToken).to.be.undefined
 			})
+		})
 
-			it('should return 400 and error if user logout unsuccessful', async() => {
+		describe('User Check Email Availability (POST /users', function() {
+			it('should return 200 and message if email is available', async() => {
 				const res = await chai.request(app)
-				.post('users/logout')
+				.post('/users/check-email-availability')
+				.type('json')
+				.send({
+					email: 'unoarce@gmail.com'
+				})
+				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTgyMDYxNzN9.T4wyyb-ajb4gnLL_zujVP9n1_f76pm2vxvcr_4hpktM')
+
+				expect(res).to.have.status(200)
+				expect(res.body.message).to.include('Email is available')
+			})
+
+			it('should return 400 and error if email is not available', async() => {
+				const res = await chai.request(app)
+				.post('/users/check-email-availability')
+				.type('json')
+				.send({
+					email: 'uno@gmail.com'
+				})
+				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTgyMDYxNzN9.T4wyyb-ajb4gnLL_zujVP9n1_f76pm2vxvcr_4hpktM')
 
 				expect(res).to.have.status(400)
-				expect(res.body.error).to.include('Logout unsuccessful')
+				expect(res.body.error).to.include('Email was already taken')
 			})
 		})
 
@@ -241,11 +261,10 @@ try {
 					ratedSong: {
 						name: '300 Dreams',
 						artist: 'After',
-						genre: 'Pop',
 						rating: 3,
 					}
 				})
-				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTcyNjI5MDJ9._BI2U3r9yUQ-4rwg_Ixp_khrhneEbsrC_qWjEApG_2A')
+				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTgyMDYxNzN9.T4wyyb-ajb4gnLL_zujVP9n1_f76pm2vxvcr_4hpktM')
 
 				expect(res).to.have.status(200)
 				expect(res.body.message).to.include('Song rating added/updated successfully')
