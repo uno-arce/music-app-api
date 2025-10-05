@@ -232,7 +232,6 @@ try {
 				.send({
 					email: 'unoarce@gmail.com'
 				})
-				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTgyMDYxNzN9.T4wyyb-ajb4gnLL_zujVP9n1_f76pm2vxvcr_4hpktM')
 
 				expect(res).to.have.status(200)
 				expect(res.body.message).to.include('Email is available')
@@ -268,6 +267,25 @@ try {
 
 				expect(res).to.have.status(200)
 				expect(res.body.message).to.include('Song rating added/updated successfully')
+			})
+		})
+
+
+		describe('User Get Song Preview Url (POST /auth/spotify)', function() {
+			it('should return 200 and object if preview details successfully retrieved', async() => {
+				const res = await chai.request(app)
+				.post('/auth/spotify/track-preview-details')
+				.type('json')
+				.send({
+					trackDetails: {
+						name: '300 Dreams',
+						artist: 'After'
+					}
+				})
+				.set('Cookie', 'authToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4NzBhYjZlYjUwZGI0OTEzNzg0ZWEyOSIsImVtYWlsIjoidW5vQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidW5vLmFyY2UiLCJpYXQiOjE3NTk2NTA4NTJ9.3MeGBbFAL3WMLsGajJ8Q4Uvi9MSEEW4qF5BDAwE8bJk')
+
+				expect(res).to.have.status(200)
+				expect(res.body).to.be.an('object')
 			})
 		})
 
