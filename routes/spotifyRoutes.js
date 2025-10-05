@@ -37,4 +37,9 @@ router.get('/mostly-listened',
 	spotifyAuth.verifyTokenExpiration, 
 	spotifyController.getMostlyListenedArtists)
 
+router.post('/track-preview-details',
+	verify,
+	spotifyAuth.verifyTokenExpiration, 
+	spotifyController.getSpotifyPreviewUrlByEnhanceSearch)
+
 module.exports = router
