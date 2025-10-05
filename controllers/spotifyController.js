@@ -1,6 +1,8 @@
 const request = require('request')
+const dotenv = require('dotenv')
 const spotifyAuth = require('../spotifyAuth.js')
 const User = require('../models/User')
+const spotifyPreviewFinder = require('spotify-preview-finder')
 
 const spotify_me_url = 'https://api.spotify.com/v1/me'
 const spotify_api_base_url = 'https://api.spotify.com/v1'
@@ -14,6 +16,8 @@ const mostlyListened = '/top/artists'
 
 const tracksLimit = 10
 const artistsLimit = 3
+
+dotenv.config()
 
 module.exports.getSavedTracksFromLibrary = async (req, res) => {
 	try {
@@ -154,6 +158,28 @@ module.exports.getMostlyListenedArtists = async (req, res) => {
 		}) 
 	} catch(dbErr) {
 		console.log(err)
+		return res.status(500).send({ error: 'Internal server error' })
+	}
+}
+
+module.exports.getSpotifyPreviewUrlByEnhanceSearch = async (req, res) => {
+	try {
+		const trackDetails = req.body.trackDetails 
+
+		const result = await spotifyPreviewFinder(trackDetails.name, trackDetails.artist)
+
+		if(result.success == false) {
+			return res.status(404).send({ error: 'Spotify preview url not found' })
+		}
+
+		const trackPreviewDetails = {
+			previewUrl: result.results[0].previewUrls[0],
+			durationMs: result.results[0].durationMs
+		}
+
+		return res.status(200).send(trackPreviewDetails)
+	} catch (dbErr) {
+		console.log(dbErr)
 		return res.status(500).send({ error: 'Internal server error' })
 	}
 }
