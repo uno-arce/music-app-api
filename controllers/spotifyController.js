@@ -16,6 +16,8 @@ const mostlyListened = '/top/artists'
 
 const tracksLimit = 10
 const artistsLimit = 3
+const savedTracksLimit = 50
+const playlistsLimit = 10
 
 dotenv.config()
 
@@ -30,12 +32,24 @@ module.exports.getSavedTracksFromLibrary = async (req, res) => {
 		const authOptions = {
 			url: spotify_me_url+tracks,
 			headers: {'Authorization': `Bearer ${accessToken}`},
+			qs: { limit: savedTracksLimit },
 			json: true
 		}
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
-				return res.status(200).send(body)
+				const savedTracks = []
+				body.items.forEach(item => {
+					savedTracks.push({
+						track: item.track.name,
+						image: item.track.album.images[0].url,
+						album: item.track.album.name,
+						artist: item.track.artists[0].name,
+						releaseDate: item.track.album.release_date,
+						reference: item.track.external_urls.spotify
+					})
+				})
+				return res.status(200).send(savedTracks)
 			} else {
 				console.error(error)
 				return res.status(500).send({ error: 'Failed to fetch saved tracks from spotify' + error})
@@ -58,12 +72,22 @@ module.exports.getCurrentUsersPlaylists = async (req, res) => {
 		const authOptions = {
 			url: spotify_me_url+playlists,
 			headers: {'Authorization': `Bearer ${accessToken}`},
+			qs: { limit: playlistsLimit },
 			json: true
 		}
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
-				return res.status(200).send(body)
+				const userPlaylists = []
+				body.items.forEach(item => {
+					userPlaylists.push({
+						playlist: item.name,
+						image: item.images?.[0]?.url,
+						id: item.id,
+						reference: item.external_urls.spotify
+					})
+				})
+				return res.status(200).send(userPlaylists)
 			} else {
 				console.error(error)
 				return res.status(500).send({ error: 'Failed to fetch user playlists from spotify' + error})
@@ -93,7 +117,19 @@ module.exports.getRecentlyPlayedTracks = async (req, res) => {
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
-				return res.status(200).send(body)
+				const recentlyPlayedTracks = []
+				body.items.forEach(item => {
+					recentlyPlayedTracks.push({
+						id: item.track.id,
+						track: item.track.name,
+						image: item.track.album.images[0].url,
+						album: item.track.album.name,
+						artist: item.track.artists[0].name,
+						releaseDate: item.track.album.release_date,
+						reference: item.track.external_urls.spotify
+					})
+				})
+				return res.status(200).send(recentlyPlayedTracks)
 			} else {
 				console.log("Error:" + error)
 				return res.status(500).send({ error: 'Failed to fetch user recently played tracks'})
@@ -122,7 +158,18 @@ module.exports.getMostlyPlayedTracks = async (req, res) => {
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error || response.statusCode === 200) {
-				return res.status(200).send(body)
+				const mostlyPlayedTracks = []
+				body.items.forEach(item => {
+					mostlyPlayedTracks.push({
+						track: item.name,
+						image: item.album.images[0].url,
+						album: item.album.name,
+						artist: item.artists[0].name,
+						popularity: item.popularity,
+						reference: item.external_urls.spotify
+					})
+				})
+				return res.status(200).send(mostlyPlayedTracks)
 			} else {
 				return res.status(500).send({ error: 'Failed to fetch user mostly played tracks' })
 			}
@@ -151,7 +198,17 @@ module.exports.getMostlyListenedArtists = async (req, res) => {
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error || response.statusCode === 200) {
-				return res.status(200).send(body)
+				const mostlyListenedArtists = []
+				body.items.forEach(item => {
+					mostlyListenedArtists.push({
+						artist: item.name,
+						image: item.images[0].url,
+						followers: item.followers.total,
+						popularity: item.popularity,
+						reference: item.external_urls.spotify
+					})
+				})
+				return res.status(200).send(mostlyListenedArtists)
 			} else {
 				return res.status(500).send({ error: 'Failed to fetch user mostly listened artists' })
 			}
