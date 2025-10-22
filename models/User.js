@@ -31,7 +31,19 @@ const userSchema = new mongoose.Schema({
 				type: String,
 				required: false
 			},
+			image: {
+				type: String,
+				required: false
+			},
+			album: {
+				type: String,
+				required: false
+			},
 			artist: {
+				type: String,
+				required: false
+			},
+			reference: {
 				type: String,
 				required: false
 			},
