@@ -125,16 +125,24 @@ module.exports.addSongRatings = async (req, res) => {
 			return res.status(404).send({ error: 'Spotify access token not found'})
 		}
 
-		const { name, artist, rating } = ratedSong
+		const { name, image, album, artist, reference, rating } = ratedSong
 
 		const existingSongIndex = user.songs.findIndex(song => song.name === name)
 
 		if (existingSongIndex !== -1) {
-		    user.songs[existingSongIndex].rating = rating;
+		    user.songs[existingSongIndex].rating = rating
+		    user.songs[existingSongIndex].image = image
+		    user.songs[existingSongIndex].album = album
+		    user.songs[existingSongIndex].artist = artist
+		    user.songs[existingSongIndex].reference = reference
+		    user.songs[existingSongIndex].name = name
 		} else {
 		    user.songs.push({
 		        name: name,
+		        image: image,
+		        album: album,
 		        artist: artist,
+		        reference: reference,
 		        rating: rating,
 		        addedOn: new Date()
 		    })
@@ -142,9 +150,24 @@ module.exports.addSongRatings = async (req, res) => {
 
         await user.save()
 
-        return res.status(200).send({ message: 'Song rating added/updated successfully.' })
+        return res.status(200).send({ message: 'Song rating added/updated successfully.', isExisting: existingSongIndex })
 	} catch(dbErr) {
 		console.log(dbErr)
 		return res.status(500).send({ error: 'Internal server error' })
+	}
+}
+
+module.exports.getRatedSongs = async (req, res) => {
+	try {
+		const user = await User.findById(req.user.id)
+
+		if(user.songs.length === 0) {
+			return res.status(401).send({ message: 'No rated songs found' })
+		}
+
+		return res.status(200).send(user.songs)
+	} catch(dbErr) {
+		console.log(dbErr)
+		return res.tatus
 	}
 }
