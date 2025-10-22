@@ -11,5 +11,6 @@ router.get('/verify', verify, (req, res) => {
 })
 router.post('/check-email-availability', userController.checkEmailAvailability)
 router.put('/rate-song', verify, userController.addSongRatings)
+router.get('/get-rated-songs', verify, userController.getRatedSongs)
 
 module.exports = router
