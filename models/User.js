@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
 	},
 	songs: [
 		{
-			name: {
+			track: {
 				type: String,
 				required: false
 			},
