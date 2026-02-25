@@ -176,10 +176,6 @@ module.exports.getRatedSongs = async (req, res) => {
 	try {
 		const user = await User.findById(req.user.id)
 
-		if(user.songs.length === 0) {
-			return res.status(401).send({ message: 'No rated songs found' })
-		}
-
 		const groupedList = {}
 		let group = 1
 		let list = []
