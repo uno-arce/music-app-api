@@ -15,7 +15,7 @@ const mostlyPlayed = '/top/tracks'
 const mostlyListened = '/top/artists'
 
 const tracksLimit = 10
-const artistsLimit = 3
+const artistsLimit = 10
 const savedTracksLimit = 50
 const playlistsLimit = 10
 
@@ -38,9 +38,11 @@ module.exports.getSavedTracksFromLibrary = async (req, res) => {
 
 		request.get(authOptions, function(error, response, body) {
 			if(!error && response.statusCode === 200) {
-				const savedTracks = []
+				const groupedList = {}
+				let group = 1
+				let list = []
 				body.items.forEach(item => {
-					savedTracks.push({
+					list.push({
 						track: item.track.name,
 						image: item.track.album.images[0].url,
 						album: item.track.album.name,
@@ -48,8 +50,15 @@ module.exports.getSavedTracksFromLibrary = async (req, res) => {
 						releaseDate: item.track.album.release_date,
 						reference: item.track.external_urls.spotify
 					})
+
+					if(list.length == 10) {
+						list = []
+						group++
+					}
+
+					groupedList[group] = list
 				})
-				return res.status(200).send(savedTracks)
+				return res.status(200).send(groupedList)
 			} else {
 				console.error(error)
 				return res.status(500).send({ error: 'Failed to fetch saved tracks from spotify' + error})
