@@ -174,7 +174,6 @@ module.exports.getMostlyPlayedTracks = async (req, res) => {
 						image: item.album.images[0].url,
 						album: item.album.name,
 						artist: item.artists[0].name,
-						popularity: item.popularity,
 						reference: item.external_urls.spotify
 					})
 				})
@@ -212,8 +211,6 @@ module.exports.getMostlyListenedArtists = async (req, res) => {
 					mostlyListenedArtists.push({
 						artist: item.name,
 						image: item.images[0].url,
-						followers: item.followers.total,
-						popularity: item.popularity,
 						reference: item.external_urls.spotify
 					})
 				})
