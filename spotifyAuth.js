@@ -6,6 +6,7 @@ const User = require('./models/User')
 
 dotenv.config()
 
+const client_url = process.env.CLIENT_URL
 const client_id = process.env.SPOTIFY_CLIENT_ID
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET
 const redirect_uri = process.env.REDIRECT_URI
@@ -50,7 +51,7 @@ const requestAccessToken = (req, res) => {
     const storedState = req.cookies ? req.cookies[stateKey] : null;
 
     if (state === null || state !== storedState) {
-        return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
+        return res.redirect(`${client_url}/spotify-callback#` +
             querystring.stringify({
                 error: 'state_mismatch'
             })
@@ -76,7 +77,7 @@ const requestAccessToken = (req, res) => {
 			if(!error && response.statusCode === 200) {
 				const {access_token, refresh_token, expires_in} = body
 
-				return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
+				return res.redirect(`${client_url}/spotify-callback#` +
 					querystring.stringify({
 						access_token: access_token,
 						refresh_token: refresh_token,
@@ -84,7 +85,7 @@ const requestAccessToken = (req, res) => {
 					})
 				)
 			} else {
-				return res.redirect('http://127.0.0.1:5173/spotify-callback#' +
+				return res.redirect(`${client_url}/spotify-callback#` +
 					querystring.stringify({
 						error: 'invalid_token'
 					})
