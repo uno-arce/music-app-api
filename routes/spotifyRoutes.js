@@ -17,11 +17,6 @@ router.get('/saved-tracks',
 	spotifyAuth.verifyTokenExpiration,
 	spotifyController.getSavedTracksFromLibrary)
 
-router.get('/playlists', 
-	verify,
-	spotifyAuth.verifyTokenExpiration,
-	spotifyController.getCurrentUsersPlaylists)
-
 router.get('/recently-played', 
 	verify, 
 	spotifyAuth.verifyTokenExpiration, 
@@ -31,11 +26,6 @@ router.get('/mostly-played',
 	verify,
 	spotifyAuth.verifyTokenExpiration, 
 	spotifyController.getMostlyPlayedTracks)
-
-router.get('/mostly-listened', 
-	verify,
-	spotifyAuth.verifyTokenExpiration, 
-	spotifyController.getMostlyListenedArtists)
 
 router.post('/track-preview-details',
 	verify,

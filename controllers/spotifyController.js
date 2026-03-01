@@ -70,45 +70,6 @@ module.exports.getSavedTracksFromLibrary = async (req, res) => {
 	}
 }
 
-module.exports.getCurrentUsersPlaylists = async (req, res) => {
-	try {
-		const accessToken  = req.user.spotifyAccessToken
-
-		if(!accessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found' })
-		}
-
-		const authOptions = {
-			url: spotify_me_url+playlists,
-			headers: {'Authorization': `Bearer ${accessToken}`},
-			qs: { limit: playlistsLimit },
-			json: true
-		}
-
-		request.get(authOptions, function(error, response, body) {
-			if(!error && response.statusCode === 200) {
-				const userPlaylists = []
-				body.items.forEach(item => {
-					userPlaylists.push({
-						playlist: item.name,
-						image: item.images?.[0]?.url,
-						id: item.id,
-						reference: item.external_urls.spotify
-					})
-				})
-				return res.status(200).send(userPlaylists)
-			} else {
-				console.error(error)
-				return res.status(500).send({ error: 'Failed to fetch user playlists from spotify' + error})
-			}
-		})
-
-	} catch(dbErr) {
-		console.error(dbErr)
-		return res.status(500).send({ error: 'Internal server error'})
-	}
-}
-
 module.exports.getRecentlyPlayedTracks = async (req, res) => {
 	try {
 		const accessToken  = req.user.spotifyAccessToken
@@ -185,42 +146,6 @@ module.exports.getMostlyPlayedTracks = async (req, res) => {
 
 	} catch(dbErr) {
 		console.log(dbErr)
-		return res.status(500).send({ error: 'Internal server error' })
-	}
-}
-
-module.exports.getMostlyListenedArtists = async (req, res) => {
-	try {
-		const accessToken  = req.user.spotifyAccessToken
-
-		if(!accessToken) {
-			return res.status(404).send({ error: 'Spotify access token not found' })
-		}
-
-		const authOptions = {
-			url: spotify_me_url+mostlyListened,
-			headers: {'Authorization': `Bearer ${accessToken}`},
-			qs: { limit: artistsLimit },
-			json: true
-		}
-
-		request.get(authOptions, function(error, response, body) {
-			if(!error || response.statusCode === 200) {
-				const mostlyListenedArtists = []
-				body.items.forEach(item => {
-					mostlyListenedArtists.push({
-						artist: item.name,
-						image: item.images[0].url,
-						reference: item.external_urls.spotify
-					})
-				})
-				return res.status(200).send(mostlyListenedArtists)
-			} else {
-				return res.status(500).send({ error: 'Failed to fetch user mostly listened artists' })
-			}
-		}) 
-	} catch(dbErr) {
-		console.log(err)
 		return res.status(500).send({ error: 'Internal server error' })
 	}
 }
