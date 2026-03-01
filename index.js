@@ -18,7 +18,7 @@ mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atl
 const app = express()
 
 const corsOptions = {
-	origin: ['http://127.0.0.1:5173'],
+	origin: [process.env.CLIENT_URL],
 	credentials: true,
 	optionsSuccessStatus: 200
 }
@@ -37,7 +37,7 @@ app.use('/auth/spotify', spotifyRoutes)
 
 const PORT = process.env.PORT || 4000
 if(require.main === module) {
-	app.listen(PORT, '127.0.0.1', () => console.log(`API is now online on port ${PORT}`))
+	app.listen(PORT, process.env.CLIENT_URL, () => console.log(`API is now online on port ${PORT}`))
 }
 
 module.exports = {app, mongoose}
