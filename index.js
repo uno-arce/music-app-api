@@ -37,7 +37,7 @@ app.use('/auth/spotify', spotifyRoutes)
 
 const PORT = process.env.PORT || 4000
 if(require.main === module) {
-	app.listen(PORT, process.env.CLIENT_URL, () => console.log(`API is now online on port ${PORT}`))
+	app.listen(PORT, process.env.CLIENT_DOMAIN, () => console.log(`API is now online on port ${PORT}`))
 }
 
 module.exports = {app, mongoose}
