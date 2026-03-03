@@ -18,8 +18,8 @@ module.exports.createAccessToken = (user, res) => {
 
 	res.cookie('authToken', token, {
 		httpOnly: true,
-		secure: 'production',
-		sameSite:  'strict'
+		secure: true,
+		sameSite:  'none'
 	})
 
 	return token
