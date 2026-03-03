@@ -89,8 +89,8 @@ module.exports.logoutUser = async (req, res) => {
 	try {
 		res.clearCookie('authToken', {
 			httpOnly: true,
-			secure: 'production',
-			sameSite: 'strict'
+			secure: true,
+			sameSite: 'none'
 		})
 
 		return res.status(200).send({ message: 'User logged off successfully' })
