@@ -24,7 +24,7 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
+
 app.use(express.static(__dirname + '/public'))
 app.use(cookieParser())
 app.use(express.json())
