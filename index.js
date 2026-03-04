@@ -6,17 +6,17 @@ const cookieParser = require('cookie-parser')
 const userRoutes = require('./routes/userRoutes.js')
 const spotifyRoutes = require('./routes/spotifyRoutes.js')
 
-// Database Connection
 dotenv.config()
+const app = express()
+// Database Connection
 const MONGODB_URI = process.env.MONGODB_URI
 
 mongoose.connect(MONGODB_URI)
-mongoose.connection.once('open', () => console.log('Now connected to MongoDB Atlas'))
+let db = mongoose.connection
+db.once('open', () => console.log('Now connected to MongoDB Atlas'))
 
 
 // Server Setup and Cors Configuration
-const app = express()
-
 const corsOptions = {
 	origin: process.env.CLIENT_URL,
 	credentials: true,
