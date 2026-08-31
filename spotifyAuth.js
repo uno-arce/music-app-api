@@ -121,8 +121,10 @@ const refreshToken = async (refreshTokenFromDb) => {
 					newRefreshToken: refresh_token || refreshTokenFromDb,
 					expirationDate
 				})
-			} else {
-				reject(new Error('Token refresh failed'))
+			} else if (response.statusCode === 400 && body.error === 'invalid_grant') {
+		      	resolve({isAuthorizationExpired: true})
+		    } else {
+				console.log(body)
 			}
 		})
 	})
@@ -189,8 +191,9 @@ const verifyTokenExpiration = async (req, res, next) => {
 
 const verifyUserAuthorization = async (req, res) => {
 	const user = await User.findById(req.user.id)
+	const { isAuthorizationExpired } = await refreshToken(user.spotifyRefreshToken)
 
-	if(!user.spotifyAccessToken) {
+	if(!user.spotifyAccessToken || isAuthorizationExpired) {
 		return res.status(400).send({ error: 'No authorization found' })
 	}
 
